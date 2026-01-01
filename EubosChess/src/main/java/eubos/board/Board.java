@@ -35,6 +35,9 @@ public class Board {
 	private static final int INDEX_QUEEN = Piece.QUEEN;
 	private static final int INDEX_KING = Piece.KING;
 	
+	private static final int LUT_WHITE = 0;
+	private static final int LUT_BLACK = 1;
+	
 	public long[] pieces = new long[7]; // N.b. INDEX_NONE is an empty long at index 0.
 	public MaterialPhase me;
 	public boolean insufficient = false;
@@ -267,8 +270,12 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
-			// Note: sets insufficient material flag...
-			incrementallyUpdateStateForCaptureForBlack(targetPiece, captureBitOffset);
+			me.updateForCapture(targetPiece, captureBitOffset);
+			insufficient = isInsufficientMaterial();
+			if (!insufficient) {
+				hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+				updateAccumulatorsForCaptureForBlack(targetPiece, captureBitOffset);
+			}
 		} else if (promotedPiece == Piece.KNIGHT) {
 			// under promotion can result in insufficient if only one pawn, in rare conditions
 			insufficient = isInsufficientMaterial();
@@ -295,26 +302,23 @@ public class Board {
 			long file_masks = 0L;
 			if (pieceType == Piece.PAWN) {
 				moveEnablesEnPassantCaptureAsBlack(originBitOffset, targetBitOffset);
-				int ownLutColourIndex = 1;
 				// Handle regular pawn pushes
-				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[LUT_BLACK][originBitOffset];
 				
 				// Handle pawn captures
 				if (targetPiece != Piece.NONE) {
 					if (Piece.isPawn(targetPiece)) {
 						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						int enemyLutColourIndex = 0;
-						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+						file_masks |= BitBoard.PassedPawn_Lut[LUT_WHITE][targetBitOffset];
 					}
 					// manage file transition of capturing pawn moves
 					boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
-					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
+					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][LUT_BLACK][isLeft ? 0 : 1];
 				}
 			} else if (Piece.isPawn(targetPiece)) {
 				// Piece takes pawn, potentially opens capture and adjacent files
-				int enemyLutColourIndex = 0;
 				file_masks |= targetSquareMask;
-				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+				file_masks |= BitBoard.PassedPawn_Lut[LUT_WHITE][targetBitOffset];
 			} else {
 				// doesn't need to be handled - can't change passed pawn bit board
 				// Handle castling secondary rook moves...
@@ -470,8 +474,12 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
-			// Note: sets insufficient flag
-			incrementallyUpdateStateForCaptureForWhite(targetPiece, captureBitOffset);
+			me.updateForCapture(targetPiece, captureBitOffset);
+			insufficient = isInsufficientMaterial();
+			if (!insufficient) {
+				hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
+				updateAccumulatorsForCaptureForWhite(targetPiece, captureBitOffset);
+			}
 		} else if (promotedPiece == Piece.KNIGHT) {
 			// under promotion can result in insufficient if only one pawn, in rare conditions
 			insufficient = isInsufficientMaterial();
@@ -499,26 +507,23 @@ public class Board {
 			if (pieceType == Piece.PAWN) {
 				moveEnablesEnPassantCaptureAsWhite(originBitOffset, targetBitOffset);
 				
-				int ownLutColourIndex = 0;
 				// Handle regular pawn pushes
-				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
+				file_masks |= BitBoard.IterativePassedPawnNonCapture[LUT_WHITE][originBitOffset];
 				
 				// Handle pawn captures
 				if (targetPiece != Piece.NONE) {
 					if (Piece.isPawn(targetPiece)) {
 						// Pawn takes pawn, clears whole front-span of target pawn (note negation of colour)
-						int enemyLutColourIndex = 1;
-						file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+						file_masks |= BitBoard.PassedPawn_Lut[LUT_BLACK][targetBitOffset];
 					}
 					// manage file transition of capturing pawn moves
 					boolean isLeft = BitBoard.getFile(targetBitOffset) < BitBoard.getFile(originBitOffset);
-					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][ownLutColourIndex][isLeft ? 0 : 1];
+					file_masks |= BitBoard.IterativePassedPawnUpdateCaptures_Lut[originBitOffset][LUT_WHITE][isLeft ? 0 : 1];
 				}
 			} else if (Piece.isPawn(targetPiece)) {
 				// Piece takes pawn, potentially opens capture and adjacent files
-				int enemyLutColourIndex = 1;
 				file_masks |= targetSquareMask;
-				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
+				file_masks |= BitBoard.PassedPawn_Lut[LUT_BLACK][targetBitOffset];
 			} else {
 				// Handle castling secondary rook moves...
 				if (Move.isCastling(move)) {
@@ -1672,15 +1677,6 @@ public class Board {
 		nnue.iterativeAccumulatorSubtractBlack(piece, capturedPieceSquare);
 	}
 	
-	public void incrementallyUpdateStateForCaptureForWhite(int targetPiece, int captureBitOffset) {
-		me.updateForCapture(targetPiece, captureBitOffset);
-		insufficient = isInsufficientMaterial();
-		if (!insufficient) {
-			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			updateAccumulatorsForCaptureForWhite(targetPiece, captureBitOffset);
-		}
-	}
-	
 	public void incrementallyUpdateStateForUndoCaptureForWhite(int targetPiece, int capturedPieceSquare) {
 		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
 		// Hash update is restored by copy when move is undone
@@ -1716,15 +1712,6 @@ public class Board {
 	public void updateAccumulatorsForCaptureForBlack(int targetPiece, int capturedPieceSquare) {
 		int piece = convertPiece(targetPiece);
 		nnue.iterativeAccumulatorSubtractWhite(piece, capturedPieceSquare);
-	}
-	
-	public void incrementallyUpdateStateForCaptureForBlack(int targetPiece, int captureBitOffset) {
-		me.updateForCapture(targetPiece, captureBitOffset);
-		insufficient = isInsufficientMaterial();
-		if (!insufficient) {
-			hashUpdater.doCapturedPiece(captureBitOffset, targetPiece);
-			updateAccumulatorsForCaptureForBlack(targetPiece, captureBitOffset);
-		}
 	}
 	
 	public void incrementallyUpdateStateForUndoCaptureForBlack(int targetPiece, int capturedPieceSquare) {
