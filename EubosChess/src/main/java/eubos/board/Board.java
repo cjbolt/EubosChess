@@ -202,12 +202,7 @@ public class Board {
 		
 		if (isCapture) {
 			// Handle captures
-			if (Move.isEnPassantCapture(move)) {
-				// Handle en passant captures, don't need to do other checks in this case
-				captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-			} else {
-				captureBitOffset = targetBitOffset;
-			}
+			captureBitOffset = targetBitOffset + (Move.isEnPassantCapture(move) ? 8 : 0);
 			long captureMask = 1L << captureBitOffset;
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
@@ -272,43 +267,34 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
+			// Note: sets insufficient material flag...
 			incrementallyUpdateStateForCaptureForBlack(targetPiece, captureBitOffset);
-		} else {
-			if (promotedPiece == Piece.KNIGHT) {
-				// under promotion can result in insufficient if only one pawn, in rare conditions
-				insufficient = isInsufficientMaterial();
-				if (insufficient) {
-					me.updateWhenDoingPromotion(Piece.BLACK_KNIGHT, originBitOffset, targetBitOffset);
-					updateAccumulatorsForPromotionBlack(Piece.BLACK_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
-				}
-			}
-			// Check whether the move sets the En Passant target square
-			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
-				// Handle castling secondary rook moves...
-				if (Move.isCastling(move)) {
-					performSecondaryCastlingMove(targetBitOffset);
-				}
-			}
+		} else if (promotedPiece == Piece.KNIGHT) {
+			// under promotion can result in insufficient if only one pawn, in rare conditions
+			insufficient = isInsufficientMaterial();
 		}
-		
 		if (insufficient) {
+			if (promotedPiece == Piece.KNIGHT) {
+				me.updateWhenDoingPromotion(Piece.BLACK_KNIGHT, originBitOffset, targetBitOffset);
+				updateAccumulatorsForPromotionBlack(Piece.BLACK_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
+			}
 			passedPawns = 0L;
 			return false;
 		}
 		
 		if (promotedPiece != Piece.NONE) {
-			
 			passedPawns &= ~initialSquareMask;
 			incrementallyUpdateStateForPromotionForBlack(pieceToMove, promotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			hashUpdater.doBasicMove(targetBitOffset, originBitOffset, pieceToMove);
 			updateAccumulatorsForBasicMoveBlack(pieceToMove, originBitOffset, targetBitOffset);
-			
+					
 			// Iterative update of passed pawns bitboard
 			// Note: this needs to be done after the piece bit boards are updated
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
 			if (pieceType == Piece.PAWN) {
+				moveEnablesEnPassantCaptureAsBlack(originBitOffset, targetBitOffset);
 				int ownLutColourIndex = 1;
 				// Handle regular pawn pushes
 				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
@@ -331,6 +317,10 @@ public class Board {
 				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
 			} else {
 				// doesn't need to be handled - can't change passed pawn bit board
+				// Handle castling secondary rook moves...
+				if (Move.isCastling(move)) {
+					performSecondaryCastlingMoveAsBlack(targetBitOffset);
+				}
 			}
 			if (file_masks != 0L) {
 				// clear passed pawns in concerned files before re-evaluating
@@ -415,13 +405,7 @@ public class Board {
 		}
 		
 		if (isCapture) {
-			// Handle captures
-			if (Move.isEnPassantCapture(move)) {
-				// Handle en passant captures, don't need to do other checks in this case
-				captureBitOffset = generateCaptureBitOffsetForEnPassant(pieceToMove, targetBitOffset);
-			} else {
-				captureBitOffset = targetBitOffset;
-			}
+			captureBitOffset = targetBitOffset + (Move.isEnPassantCapture(move) ? -8 : 0);
 			long captureMask = 1L << captureBitOffset;
 			if (EubosEngineMain.ENABLE_ASSERTS) {
 				assert (pieces[Piece.PIECE_NO_COLOUR_MASK & targetPiece] & captureMask) != 0: 
@@ -486,26 +470,17 @@ public class Board {
 		setEnPassantTargetSq(BitBoard.INVALID);
 		
 		if (isCapture) {
+			// Note: sets insufficient flag
 			incrementallyUpdateStateForCaptureForWhite(targetPiece, captureBitOffset);
-		} else {
-			if (promotedPiece == Piece.KNIGHT) {
-				// under promotion can result in insufficient if only one pawn, in rare conditions
-				insufficient = isInsufficientMaterial();
-				if (insufficient) {
-					me.updateWhenDoingPromotion(Piece.WHITE_KNIGHT, originBitOffset, targetBitOffset);
-					updateAccumulatorsForPromotionWhite(Piece.WHITE_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
-				}
-			}
-			// Check whether the move sets the En Passant target square
-			if (!moveEnablesEnPassantCapture(pieceToMove, originBitOffset, targetBitOffset)) {
-				// Handle castling secondary rook moves...
-				if (Move.isCastling(move)) {
-					performSecondaryCastlingMove(targetBitOffset);
-				}
-			}
+		} else if (promotedPiece == Piece.KNIGHT) {
+			// under promotion can result in insufficient if only one pawn, in rare conditions
+			insufficient = isInsufficientMaterial();
 		}
-		
 		if (insufficient) {
+			if (promotedPiece == Piece.KNIGHT) {
+				me.updateWhenDoingPromotion(Piece.WHITE_KNIGHT, originBitOffset, targetBitOffset);
+				updateAccumulatorsForPromotionWhite(Piece.WHITE_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
+			}
 			passedPawns = 0L;
 			return false;
 		}
@@ -522,6 +497,8 @@ public class Board {
 			// build up significant file masks, should be three or four consecutive files, re-evaluate passed pawns in those files
 			long file_masks = 0L;
 			if (pieceType == Piece.PAWN) {
+				moveEnablesEnPassantCaptureAsWhite(originBitOffset, targetBitOffset);
+				
 				int ownLutColourIndex = 0;
 				// Handle regular pawn pushes
 				file_masks |= BitBoard.IterativePassedPawnNonCapture[ownLutColourIndex][originBitOffset];
@@ -543,7 +520,10 @@ public class Board {
 				file_masks |= targetSquareMask;
 				file_masks |= BitBoard.PassedPawn_Lut[enemyLutColourIndex][targetBitOffset];
 			} else {
-				// doesn't need to be handled - can't change passed pawn bit board
+				// Handle castling secondary rook moves...
+				if (Move.isCastling(move)) {
+					performSecondaryCastlingMoveAsWhite(targetBitOffset);
+				}
 			}
 			if (file_masks != 0L) {
 				// clear passed pawns in concerned files before re-evaluating
@@ -615,11 +595,6 @@ public class Board {
 			assert (pieceMask & initialSquareMask) != 0: String.format("Non-existant piece at %s, %s",
 					Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(moveToUndo));
 		}
-		
-		// Handle reversal of any castling secondary rook moves on the board
-		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(originBitOffset);
-		}
 		// Switch piece bitboard
 		if (promotedPiece != Piece.NONE) {
 			// Remove promoted piece and replace it with a pawn
@@ -643,13 +618,14 @@ public class Board {
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
 			// Origin square because the move has been reversed and origin square is the original target square
-			int capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
-					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
+			int capturedPieceSquare = originBitOffset + (Move.isEnPassantCapture(moveToUndo) ? -8 : 0); 
 			long mask = 1L << capturedPieceSquare;
 			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 			blackPieces |= mask;
 			allPieces |= mask;
 			incrementallyUpdateStateForUndoCaptureForWhite(targetPiece, capturedPieceSquare);			
+		} else if (Move.isCastling(moveToUndo)) {
+			unperformSecondaryCastlingMoveAsWhite(originBitOffset);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -692,10 +668,6 @@ public class Board {
 					Position.toGenericPosition(BitBoard.bitToPosition_Lut[originBitOffset]), Move.toString(moveToUndo));
 		}
 		
-		// Handle reversal of any castling secondary rook moves on the board
-		if (Move.isCastling(moveToUndo)) {
-			unperformSecondaryCastlingMove(originBitOffset);
-		}
 		// Switch piece bitboard
 		if (promotedPiece != Piece.NONE) {
 			// Remove promoted piece and replace it with a pawn
@@ -719,13 +691,14 @@ public class Board {
 		// Undo any capture that had been previously performed.
 		if (isCapture) {
 			// Origin square because the move has been reversed and origin square is the original target square
-			int capturedPieceSquare = Move.isEnPassantCapture(moveToUndo) ? 
-					generateCaptureBitOffsetForEnPassant(originPiece, originBitOffset) : originBitOffset;
+			int capturedPieceSquare = originBitOffset + (Move.isEnPassantCapture(moveToUndo) ? 8 : 0); 
 			long mask = 1L << capturedPieceSquare;
 			pieces[targetPiece & Piece.PIECE_NO_COLOUR_MASK] |= mask;
 			whitePieces |= mask;
 			allPieces |= mask;
 			incrementallyUpdateStateForUndoCaptureForBlack(targetPiece, capturedPieceSquare);			
+		} else if (Move.isCastling(moveToUndo)) {
+			unperformSecondaryCastlingMoveAsBlack(originBitOffset);
 		}
 		
 		if (EubosEngineMain.ENABLE_ASSERTS) {
@@ -750,22 +723,20 @@ public class Board {
 		return targetBitOffset;
 	}
 	
-	private boolean moveEnablesEnPassantCapture(int originPiece, int originBitOffset, int targetBitOffset) {
-		boolean isEnPassantCapturePossible = false;
-		if (Piece.isPawn(originPiece)) {
-			if (BitBoard.getRank(originBitOffset) == IntRank.R2) {
-				if (BitBoard.getRank(targetBitOffset) == IntRank.R4) {
-					isEnPassantCapturePossible = true;
-					setEnPassantTargetSq(targetBitOffset-8);
-				}
-			} else if (BitBoard.getRank(originBitOffset) == IntRank.R7) {
-				if (BitBoard.getRank(targetBitOffset) == IntRank.R5) {
-					isEnPassantCapturePossible = true;
-					setEnPassantTargetSq(targetBitOffset+8);
-				}
+	private void moveEnablesEnPassantCaptureAsBlack(int originBitOffset, int targetBitOffset) {
+		if (BitBoard.getRank(originBitOffset) == IntRank.R7) {
+			if (BitBoard.getRank(targetBitOffset) == IntRank.R5) {
+				setEnPassantTargetSq(targetBitOffset+8);
 			}
 		}
-		return isEnPassantCapturePossible;
+	}
+	
+	private void moveEnablesEnPassantCaptureAsWhite(int originBitOffset, int targetBitOffset) {
+		if (BitBoard.getRank(originBitOffset) == IntRank.R2) {
+			if (BitBoard.getRank(targetBitOffset) == IntRank.R4) {
+				setEnPassantTargetSq(targetBitOffset-8);
+			}
+		}
 	}
 	
 	public int getKingPosition(boolean isWhite) {
@@ -887,7 +858,7 @@ public class Board {
 	private static final long bksc_mask = BitBoard.positionToMask_Lut[Position.h8] | BitBoard.positionToMask_Lut[Position.f8];
 	private static final long bqsc_mask = BitBoard.positionToMask_Lut[Position.a8] | BitBoard.positionToMask_Lut[Position.d8];
 	
-	private void performSecondaryCastlingMove(int target) {
+	private void performSecondaryCastlingMoveAsWhite(int target) {
 		if (target == BitBoard.g1) {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
@@ -895,14 +866,18 @@ public class Board {
 			hashUpdater.doBasicMove(BitBoard.f1, BitBoard.h1, Piece.WHITE_ROOK);
 			nnue.iterativeAccumulatorSubtractWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.h1);
 			nnue.iterativeAccumulatorAddWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.f1);
-		} else if (target == BitBoard.c1) {
+		} else {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			hashUpdater.doBasicMove(BitBoard.d1, BitBoard.a1, Piece.WHITE_ROOK);
 			nnue.iterativeAccumulatorSubtractWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.a1);
 			nnue.iterativeAccumulatorAddWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.d1);
-		} else if (target == BitBoard.g8) {
+		}
+	}
+	
+	private void performSecondaryCastlingMoveAsBlack(int target) {
+		if (target == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);
@@ -919,7 +894,7 @@ public class Board {
 		}
 	}
 	
-	private void unperformSecondaryCastlingMove(int origin) {
+	private void unperformSecondaryCastlingMoveAsWhite(int origin) {
 		if (origin == BitBoard.g1) {
 			pieces[INDEX_ROOK] ^= (wksc_mask);
 			whitePieces ^= (wksc_mask);
@@ -927,14 +902,18 @@ public class Board {
 			hashUpdater.doBasicMove(BitBoard.h1, BitBoard.f1, Piece.WHITE_ROOK);
 			nnue.iterativeAccumulatorSubtractWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.f1);
 			nnue.iterativeAccumulatorAddWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.h1);
-		} else if (origin == BitBoard.c1) {
+		} else {
 			pieces[INDEX_ROOK] ^= (wqsc_mask);
 			whitePieces ^= (wqsc_mask);
 			allPieces ^= (wqsc_mask);
 			hashUpdater.doBasicMove(BitBoard.a1, BitBoard.d1, Piece.WHITE_ROOK);
 			nnue.iterativeAccumulatorSubtractWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.d1);
 			nnue.iterativeAccumulatorAddWhite(convertPiece(Piece.WHITE_ROOK), BitBoard.a1);
-		} else if (origin == BitBoard.g8) {
+		}
+	}
+	
+	private void unperformSecondaryCastlingMoveAsBlack(int origin) {
+		if (origin == BitBoard.g8) {
 			pieces[INDEX_ROOK] ^= (bksc_mask);
 			blackPieces ^= (bksc_mask);
 			allPieces ^= (bksc_mask);

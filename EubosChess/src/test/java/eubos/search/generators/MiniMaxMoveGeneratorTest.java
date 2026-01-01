@@ -18,7 +18,6 @@ import eubos.main.EubosEngineMain;
 import eubos.position.Move;
 import eubos.position.PositionManager;
 import eubos.search.transposition.FixedSizeTranspositionTable;
-import eubos.search.transposition.Transposition;
 import eubos.search.SearchMetricsReporter;
 import eubos.search.SearchResult;
 
