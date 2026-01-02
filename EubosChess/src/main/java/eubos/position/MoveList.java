@@ -48,7 +48,6 @@ public class MoveList {
 			int currentMove = it.nextInt();
 			if (pm.performMove(currentMove)) {
 				pm.unperformMove();
-				pm.getTheBoard().insufficient = pm.getTheBoard().isInsufficientMaterial(); // It is cleared each time we unperformMove
 				pm.getTheBoard().createPassedPawnsBoard();
 				moves[moveCount] = currentMove;
 				moveCount += 1;
