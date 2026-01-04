@@ -283,7 +283,6 @@ public class Board {
 		if (insufficient) {
 			if (promotedPiece == Piece.KNIGHT) {
 				me.updateWhenDoingPromotion(Piece.BLACK_KNIGHT, originBitOffset, targetBitOffset);
-				updateAccumulatorsForPromotionBlack(Piece.BLACK_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
 			}
 			passedPawns = 0L;
 			return false;
@@ -487,7 +486,6 @@ public class Board {
 		if (insufficient) {
 			if (promotedPiece == Piece.KNIGHT) {
 				me.updateWhenDoingPromotion(Piece.WHITE_KNIGHT, originBitOffset, targetBitOffset);
-				updateAccumulatorsForPromotionWhite(Piece.WHITE_KNIGHT, pieceToMove, originBitOffset, targetBitOffset);
 			}
 			passedPawns = 0L;
 			return false;
@@ -605,10 +603,9 @@ public class Board {
 			// Remove promoted piece and replace it with a pawn
 			pieces[promotedPiece] ^= initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
-			int fullPromotedPiece = promotedPiece;
-			me.updateWhenUndoingPromotion(promotedPiece, originBitOffset, targetBitOffset);			
-			updateAccumulatorsForPromotionWhite(originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);
-			
+			me.updateWhenUndoingPromotion(promotedPiece, originBitOffset, targetBitOffset);
+			if (!insufficient)
+				updateAccumulatorsForPromotionWhite(originPiece, promotedPiece, originBitOffset, targetBitOffset);
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
 			pieces[pieceType] ^= positionsMask;
@@ -633,7 +630,10 @@ public class Board {
 			unperformSecondaryCastlingMoveAsWhite(originBitOffset);
 		}
 		
+		insufficient = isInsufficientMaterial();
+
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			basicAsserts();
 			int old_score = nnue.old_evaluate(this, true);
 			int new_score = nnue.new_evaluate_for_assert(this, true);
 			if (!insufficient) {
@@ -641,9 +641,6 @@ public class Board {
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 			}
 		}
-		insufficient = isInsufficientMaterial();
-		if (EubosEngineMain.ENABLE_ASSERTS) basicAsserts();
-		//insufficient = false;
 	}
 	
 	public void undoMoveBlack(int moveToUndo) {
@@ -679,9 +676,9 @@ public class Board {
 			pieces[promotedPiece] ^= initialSquareMask;	
 			pieces[INDEX_PAWN] |= targetSquareMask;
 			int fullPromotedPiece = (promotedPiece|Piece.BLACK);
-			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);			
-			updateAccumulatorsForPromotionBlack(originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);
-			
+			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
+			if (!insufficient)
+				updateAccumulatorsForPromotionBlack(originPiece, (promotedPiece|Piece.BLACK), originBitOffset, targetBitOffset);	
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
 			pieces[pieceType] ^= positionsMask;
@@ -705,18 +702,16 @@ public class Board {
 		} else if (Move.isCastling(moveToUndo)) {
 			unperformSecondaryCastlingMoveAsBlack(originBitOffset);
 		}
-		
+		insufficient = isInsufficientMaterial();
+
 		if (EubosEngineMain.ENABLE_ASSERTS) {
+			basicAsserts();
 			int old_score = nnue.old_evaluate(this, false);
 			int new_score = nnue.new_evaluate_for_assert(this, false);
 			if (!insufficient) {
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 			}
 		}
-		
-		insufficient = isInsufficientMaterial();
-		if (EubosEngineMain.ENABLE_ASSERTS) basicAsserts();
-		//insufficient = false;
 	}
 	
 	public int generateCaptureBitOffsetForEnPassant(int pieceToMove, int targetBitOffset) {
