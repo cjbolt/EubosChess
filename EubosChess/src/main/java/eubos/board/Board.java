@@ -112,15 +112,6 @@ public class Board {
 			me.phase -= MaterialPhase.PIECE_PHASE;
 			scratchBitBoard ^= (1L << bitOffset);
 		}
-		scratchBitBoard = pieces[Piece.PAWN] & ownPieces;
-		while (scratchBitBoard != 0L && (bitOffset = BitBoard.convertToBitOffset(scratchBitBoard)) != BitBoard.INVALID) {
-			if (EubosEngineMain.ENABLE_ASSERTS) {
-				assert getPieceAtSquare(1L << bitOffset) != Piece.NONE :
-					String.format("Found a Pawn at %s that isn't on Board", Position.toGenericPosition(bitOffset));
-			}
-			me.numberOfPieces[side+Piece.PAWN]++;
-			scratchBitBoard ^= (1L << bitOffset);
-		}
 	}
 	
 	private void evaluateMaterial(MaterialPhase the_me) {
@@ -348,7 +339,6 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);
 			assert (me.numberOfPieces[Piece.WHITE_ROOK]+me.numberOfPieces[Piece.BLACK_ROOK]) == Long.bitCount(pieces[INDEX_ROOK]);
 			assert (me.numberOfPieces[Piece.WHITE_QUEEN]+me.numberOfPieces[Piece.BLACK_QUEEN]) == Long.bitCount(pieces[INDEX_QUEEN]);
-			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
 			if (!insufficient) {
 				/* Both of these iterative updates are skipped if there is insufficient material, it seems forced can come here too */
@@ -551,7 +541,6 @@ public class Board {
 			assert (me.numberOfPieces[Piece.WHITE_BISHOP]+me.numberOfPieces[Piece.BLACK_BISHOP]) == Long.bitCount(pieces[INDEX_BISHOP]);
 			assert (me.numberOfPieces[Piece.WHITE_ROOK]+me.numberOfPieces[Piece.BLACK_ROOK]) == Long.bitCount(pieces[INDEX_ROOK]);
 			assert (me.numberOfPieces[Piece.WHITE_QUEEN]+me.numberOfPieces[Piece.BLACK_QUEEN]) == Long.bitCount(pieces[INDEX_QUEEN]);
-			assert (me.numberOfPieces[Piece.WHITE_PAWN]+me.numberOfPieces[Piece.BLACK_PAWN]) == Long.bitCount(pieces[INDEX_PAWN]);
 			assert Long.bitCount(pieces[INDEX_KING]) == 2;
 			if (!insufficient) {
 				/* Both of these iterative updates are skipped if there is insufficient material, it seems forced can come here too */
@@ -634,9 +623,9 @@ public class Board {
 
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			basicAsserts();
-			int old_score = nnue.old_evaluate(this, true);
-			int new_score = nnue.new_evaluate_for_assert(this, true);
 			if (!insufficient) {
+				int old_score = nnue.old_evaluate(this, true);
+				int new_score = nnue.new_evaluate_for_assert(this, true);
 				// Get forced move can lead to insufficient material, then we don't use stack to restore eval or hash
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 			}
@@ -678,7 +667,7 @@ public class Board {
 			int fullPromotedPiece = (promotedPiece|Piece.BLACK);
 			me.updateWhenUndoingPromotion(fullPromotedPiece, originBitOffset, targetBitOffset);
 			if (!insufficient)
-				updateAccumulatorsForPromotionBlack(originPiece, (promotedPiece|Piece.BLACK), originBitOffset, targetBitOffset);	
+				updateAccumulatorsForPromotionBlack(originPiece, fullPromotedPiece, originBitOffset, targetBitOffset);	
 		} else {
 			// Piece type doesn't change across boards, update piece-specific bitboard and accumulators
 			pieces[pieceType] ^= positionsMask;
@@ -706,9 +695,9 @@ public class Board {
 
 		if (EubosEngineMain.ENABLE_ASSERTS) {
 			basicAsserts();
-			int old_score = nnue.old_evaluate(this, false);
-			int new_score = nnue.new_evaluate_for_assert(this, false);
 			if (!insufficient) {
+				int old_score = nnue.old_evaluate(this, false);
+				int new_score = nnue.new_evaluate_for_assert(this, false);
 				assert old_score == new_score : String.format("old %d new %d insufficient %b", old_score, new_score, insufficient);
 			}
 		}

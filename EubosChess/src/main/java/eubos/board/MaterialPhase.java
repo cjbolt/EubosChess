@@ -30,15 +30,11 @@ public class MaterialPhase {
 	}
 	
 	public void updateWhenUndoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
-		int pawnToReplace = (promoPiece & Piece.BLACK)+Piece.PAWN;
-		numberOfPieces[pawnToReplace]++;
 		numberOfPieces[promoPiece]--;
 		phase -= PHASE_LUT[promoPiece];
 	}
 	
 	public void updateWhenDoingPromotion(int promoPiece, int oldBitOffset, int newBitOffset) {
-		int pawnToRemove = (promoPiece & Piece.BLACK)+Piece.PAWN;
-		numberOfPieces[pawnToRemove]--;
 		numberOfPieces[promoPiece]++;
 		phase += PHASE_LUT[promoPiece];
 	}
