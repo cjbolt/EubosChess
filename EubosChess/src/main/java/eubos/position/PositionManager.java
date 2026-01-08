@@ -109,6 +109,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		long pp = theBoard.getPassedPawns();
 		long old_hash = getHash();
 		int old_flags = castling.getFlags();
+		//boolean insuff = theBoard.insufficient;
 		
 		// Legal move check
 		if (onMoveIsWhite) {
@@ -122,7 +123,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		}	
 
 		// Store old state
-		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly);
+		moveTracker.push(pp, move, old_flags, prevEnPassantTargetSq, old_hash, dc.checkFromPly/*, insuff*/);
 		
 		// Update state
 		// Update Hash
@@ -154,6 +155,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		castling.setFlags(stack.castling);
 		theBoard.setPassedPawns(stack.passed_pawn);
 		theBoard.setEnPassantTargetSq(stack.en_passant_square);
+		//theBoard.insufficient = stack.insufficient;
 		hash.hashCode = stack.hash;
 		dc.checkFromPly = stack.draw_check_ply;
 			
@@ -171,7 +173,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		// Preserve state
 		int prevEnPassantTargetSq = theBoard.getEnPassantTargetSq();
 		theBoard.setEnPassantTargetSq(BitBoard.INVALID);
-		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, getHash(), 0);
+		moveTracker.push(0L, Move.NULL_MOVE, castling.getFlags(), prevEnPassantTargetSq, getHash(), 0 /*, false*/);
 
 		hash.doEnPassant(prevEnPassantTargetSq, BitBoard.INVALID);
 		

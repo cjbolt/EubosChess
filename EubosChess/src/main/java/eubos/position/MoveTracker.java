@@ -11,6 +11,7 @@ class MoveTracker {
 		byte castling;
 		int move;
 		int draw_check_ply;
+		//boolean insufficient;
 		
 		MoveStack() {
 			passed_pawn = 0L;
@@ -19,6 +20,7 @@ class MoveTracker {
 			castling = 0;
 			move = Move.NULL_MOVE;
 			draw_check_ply = 0;
+			//insufficient = false;
 		}
 	}
 	private static final int CAPACITY = 1200;
@@ -33,13 +35,14 @@ class MoveTracker {
 		index = 0;
 	}
 	
-	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index) {
+	public void push(long pp, int move, int castling, int enPassant, long hash, int dc_index/*, boolean insuff*/) {
 		stack[index].passed_pawn = pp;
 		stack[index].move = move;
 		stack[index].en_passant_square = (byte) enPassant;
 		stack[index].castling = (byte) castling;
 		stack[index].hash = hash;
 		stack[index].draw_check_ply = dc_index;
+		//stack[index].insufficient = insuff;
 		index += 1;
 	}
 	
