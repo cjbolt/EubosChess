@@ -42,10 +42,14 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 		moveGenerators = new ArrayList<MiniMaxMoveGenerator>(threads);
 		// The first move generator shall be that constructed by the abstract MoveSearcher, this one shall be accessed by the stopper thread
 		moveGenerators.add(mg);
+		long correctHash = mg.pos.getHash();
 		// Create subsequent move generators using cloned DrawCheckers and distinct PositionManagers
 		for (int i=1; i < threads; i++) {
 			DrawChecker cloned_dc = new DrawChecker(dc);
-			PositionManager pm = new PositionManager(fen, cloned_dc);
+			PositionManager pm = new PositionManager(fen, correctHash, cloned_dc);
+			//long currHash = pm.getHash();
+			//assert lastHash == currHash : String.format("Hash inconsistency between worker threads when starting %x != %x: %s c.f. %s",
+			//		lastHash, currHash, mg.pos.getFen(), pm.getFen());
 			MiniMaxMoveGenerator thisMg = new MiniMaxMoveGenerator(hashMap, pm, sr, refScore.getReference());
 			thisMg.setEngineCallback(eubos);
 			moveGenerators.add(thisMg);
@@ -148,7 +152,8 @@ public class MultithreadedIterativeMoveSearcher extends IterativeMoveSearcher {
 			for (MultithreadedSearchWorkerThread worker : workers) {
 				// Find deepest trusted PV
 				if (worker.result.trusted) {
-					if (worker.result.depth > ply || (worker.result.depth == ply && worker.result.score > best_score)) {
+					if ((worker.result.depth > ply && worker.result.score != Score.PROVISIONAL_ALPHA) ||
+						(worker.result.depth >= ply && worker.result.score > best_score)) {
 						ply = worker.result.depth;
 						best_score = worker.result.score;
 						result = worker.result;

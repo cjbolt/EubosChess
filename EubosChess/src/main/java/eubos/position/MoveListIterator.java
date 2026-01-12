@@ -279,13 +279,29 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 	}
 
 	private void sortQuietMoves() {
-		IntArrays.quickSort(state.moves, 0, state.moves_index, history.moveHistoryComparator);
+		switch (ordering % 3) {
+		case 0:
+			/* Don't order the move list in this case. */
+			break;
+		case 1:
+			IntArrays.quickSort(state.moves, 0, state.moves_index, history.moveHistoryComparator);
+			break;
+		case 2:
+			IntArrays.quickSort(state.moves, 0, state.moves_index, history.moveHistoryComparator);
+			IntArrays.reverse(state.moves, 0, state.moves_index);
+			break;
+		default:
+			if (EubosEngineMain.ENABLE_ASSERTS)
+				assert false : String.format("Bad move ordering scheme %d!", ordering);
+			break;
+		}
+		
 	}
 	
 	private void sortTacticalMoves() {
 		if (ply == 0) {
 			// At the root node use different mechanisms for move ordering in different threads
-			switch (ordering) {
+			switch (ordering % 3) {
 			case 0:
 				/* Don't order the move list in this case. */
 				break;
@@ -293,15 +309,8 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 				IntArrays.quickSort(state.moves, 0, state.moves_index, Move.mvvLvaComparator);
 				break;
 			case 2:
-				IntArrays.reverse(state.moves, 0, state.moves_index);
-				IntArrays.quickSort(state.moves, 0, state.moves_index, moveTypeComparator);
-				break;
-			case 3:
-				IntArrays.reverse(state.moves, 0, state.moves_index);
 				IntArrays.quickSort(state.moves, 0, state.moves_index, Move.mvvLvaComparator);
-				break;
-			case 4:
-				IntArrays.quickSort(state.moves, 0, state.moves_index, moveTypeComparator);
+				IntArrays.reverse(state.moves, 0, state.moves_index);
 				break;
 			default:
 				if (EubosEngineMain.ENABLE_ASSERTS)
