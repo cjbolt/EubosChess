@@ -559,11 +559,22 @@ public class EubosEngineMain extends AbstractEngine {
 			trustedTrans = selectBestTranspositionData(tableRoot, cacheRoot);
 			boolean trustedMoveWasFromTrans = false;
 			
-			if (result.pv != null && result.trusted) {
-				trustedMove = result.pv[0];
-			} else if (transpositionIsValid(trustedTrans)) {
-				trustedMove = Move.valueOfFromTransposition(trustedTrans, rootPosition.getTheBoard());
-				trustedMoveWasFromTrans = true;
+			if (numberOfWorkerThreads == 1) {
+				if (result.pv != null && result.trusted) {
+					trustedMove = result.pv[0];
+				} else if (transpositionIsValid(trustedTrans)) {
+					trustedMove = Move.valueOfFromTransposition(trustedTrans, rootPosition.getTheBoard());
+					trustedMoveWasFromTrans = true;
+				}
+			} else {
+				if (transpositionIsValid(trustedTrans)) {
+					trustedMove = Move.valueOfFromTransposition(trustedTrans, rootPosition.getTheBoard());
+					trustedMoveWasFromTrans = true;
+					sendInfoString(String.format("getTrustedMove %s",
+							       Transposition.report(trustedTrans, rootPosition.getTheBoard())));
+				} else if (result.pv != null && result.trusted) {
+					trustedMove = result.pv[0];
+				}
 			}
 			if (EubosEngineMain.ENABLE_DEBUG_VALIDATION_SEARCH) {
 				if (lastOnMoveClock > 30000) {
