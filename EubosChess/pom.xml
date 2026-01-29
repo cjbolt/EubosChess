@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>c_j_bolt</groupId>
     <artifactId>EubosChess</artifactId>
-    <version>4.3</version>
+    <version>4.4</version>
     <name>Eubos</name>
     <description>Eubos Chess Engine</description>
 
