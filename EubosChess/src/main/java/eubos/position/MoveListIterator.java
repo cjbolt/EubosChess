@@ -51,7 +51,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		}
 	}
 	
-	private static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
+	static final MoveTypeComparator moveTypeComparator = new MoveTypeComparator();
 
 	static class MoveTypeComparator implements IntComparator {
 		@Override
