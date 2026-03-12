@@ -16,7 +16,7 @@
         <fastutil.version>8.5.6</fastutil.version>
 
         <!-- dependencyManagement -->
-        <junit-bom.version>5.8.2</junit-bom.version>
+        <junit-bom.version>5.9.2</junit-bom.version>
         <jcpi.version>1.4.1.1</jcpi.version>
     </properties>
 

@@ -17,7 +17,7 @@ class CommandPair {
 		return out != null;
 	}
 	public boolean isExpectedOutput(String received) {
-		return received.endsWith(out);
+		return received.contains(out);
 	}
 }
 

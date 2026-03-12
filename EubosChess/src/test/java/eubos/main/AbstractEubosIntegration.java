@@ -173,7 +173,7 @@ public abstract class AbstractEubosIntegration {
 			// Pass command to engine
 			if (inputCmd != null) {
 				//EubosEngineMain.logger.info(String.format("************* %s", inputCmd));
-				if (inputCmd.startsWith("position") || inputCmd.startsWith("go")/*&& hashEntry != 0L*/) {
+				if (inputCmd.startsWith("position") || inputCmd.startsWith("go")) {
 					Thread.sleep(sleep_50ms);
 					// Seed hash table with problematic hash
 					if (classUnderTest.rootPosition != null && hashEntry != 0L) {
@@ -188,8 +188,8 @@ public abstract class AbstractEubosIntegration {
 			// Test expected command was received
 			if (currCmdPair.expectOutput()) {
 				boolean received = false;
-				int timer = 0;
 				boolean accumulate = false;
+				int timer = 0;
 				String recievedCmd = "";
 				// Receive message or wait for timeout to expire.
 				while (!received && timer < timeout) {
@@ -203,13 +203,11 @@ public abstract class AbstractEubosIntegration {
 						recievedCmd = testOutput.toString();
 					}
 					if (recievedCmd != null && !recievedCmd.isEmpty()) {
-						System.err.println(recievedCmd);
-						if (!accumulate)
-							System.out.println(recievedCmd);
 						testOutput.reset();
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
-					    if (!parsedCmd.isEmpty()) { // want to use isBlank(), but that is Java 11 only.
+					    if (!parsedCmd.isBlank()) {
+					    	//System.err.println(parsedCmd);
 							if (currCmdPair.isExpectedOutput(parsedCmd)) {
 								received = true;
 								accumulate = false;
@@ -217,12 +215,10 @@ public abstract class AbstractEubosIntegration {
 									mateDetected = true;
 								}
 								filterEngineOutput(parsedCmd, "mate");
+								filterEngineOutput(parsedCmd, "bestmove");
 							} else if (parsedCmd.contains(mateExpectation)) {
 								mateDetected = true;
 								accumulate = true;
-							} else {
-								filterEngineOutput(parsedCmd, "bestmove");
-								accumulate = false;
 							}
 					    }
 					}
