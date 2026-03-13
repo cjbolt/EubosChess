@@ -92,6 +92,10 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		return hash.hashCode;
 	}
 	
+	public boolean isLikelyDrawnEndgame() {
+		return theBoard.isLikelyDrawnEndgame();
+	}
+	
 	public boolean isInsufficientMaterial() {
 		return theBoard.insufficient;
 	}

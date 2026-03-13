@@ -1658,4 +1658,83 @@ public class Board {
 		hashUpdater.doPromotionMove(targetBitOffset, originBitOffset, pieceToMove, fullPromotedPiece);
 		updateAccumulatorsForPromotionBlack(fullPromotedPiece, pieceToMove, originBitOffset, targetBitOffset);
 	}
+	
+	public boolean isLikelyDrawnEndgame() {
+		// Possible promotions
+		if (pieces[Piece.PAWN] != 0)
+			return false;
+
+		boolean possiblyDrawn = false;
+
+		// Minor pieces
+		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
+		int numWhiteKnights = me.numberOfPieces[Piece.WHITE_KNIGHT];
+		int numBlackBishops = me.numberOfPieces[Piece.BLACK_BISHOP];
+		int numBlackKnights = me.numberOfPieces[Piece.BLACK_KNIGHT];
+		int numWhiteMinor = numWhiteBishops + numWhiteKnights;
+		int numBlackMinor = numBlackBishops + numBlackKnights;
+
+		if (pieces[Piece.QUEEN] == 0) {
+			int numWhiteRooks = me.numberOfPieces[Piece.WHITE_ROOK];
+			int numBlackRooks = me.numberOfPieces[Piece.BLACK_ROOK];
+			// (R vs 2 minor) or (R Minor vs Minor)
+			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
+				// "R vs 2 minor" or "R Minor vs 2 minor"
+				if (numBlackRooks == 0 && numBlackMinor == 2) {
+					possiblyDrawn = true;
+				}
+				// "R Minor vs r" or "R vs r"
+				if (numBlackRooks == 1 && numBlackMinor == 0) {
+					possiblyDrawn = true;
+				}
+			}
+			if (numBlackRooks == 1 && numBlackMinor < 2) {
+				// "R vs 2 minor"
+				if (numWhiteRooks == 0 && numWhiteMinor == 2) {
+					possiblyDrawn = true;
+				}				
+				// R vs R Minor
+				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
+					possiblyDrawn = true;
+				}
+			}	
+			if (!possiblyDrawn && (numWhiteRooks > 0 || numBlackRooks > 0)) {
+				// at least one rook on the board
+				return false;
+			} else {
+				// No rooks, look at minor piece balance
+				if (numWhiteBishops < 2 && numWhiteMinor == 2 && numBlackMinor == 1) {
+					return true;
+				}
+				if (numBlackBishops < 2 && numBlackMinor == 2 && numWhiteMinor == 1) {
+					return true;
+				}
+			}
+		} else {
+			if (pieces[Piece.ROOK] == 0) {
+				
+				int numWhiteQueens = me.numberOfPieces[Piece.WHITE_QUEEN];		
+				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
+				// Q vs 2 minor
+				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
+					possiblyDrawn = true;
+				}
+				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
+					possiblyDrawn = true;
+				}
+				// Q minor vs Q
+				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
+					possiblyDrawn = true;
+				}
+				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
+					possiblyDrawn = true;
+				}
+			}
+			// At least one queen on the board
+			if (!possiblyDrawn)
+				return false;
+		}
+		
+		return false;
+	}
 }

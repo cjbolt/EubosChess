@@ -15,25 +15,18 @@ public class PositionEvaluator implements IEvaluate {
 	private int score;
 	private Board bd;
 	
-	private void basicInit() {
-		isDraw = false;
-		score = 0;
-	}
-	
 	private void initialise() {
-		basicInit();
-		isDraw = pm.isThreefoldRepetitionPossible();
-		if (!isDraw) {
-			isDraw = pm.isInsufficientMaterial();
-		}
+		score = 0;
+		isDraw = pm.isThreefoldRepetitionPossible() || pm.isInsufficientMaterial();
 	}
 	
-	int neural_net_eval() {
+	private int neural_net_eval() {
 		return bd.nnue.evaluate((PositionManager) this.pm);
 	}
 	
 	public int lazyEvaluation(int alpha, int beta) {
-		basicInit();
+		score = 0;
+		isDraw = pm.isLikelyDrawnEndgame();
 		if (!isDraw) {
 			score = neural_net_eval();
 			if (score >= beta) {
@@ -45,17 +38,14 @@ public class PositionEvaluator implements IEvaluate {
 	
 	public int getFullEvaluation() {
 		initialise();
-		if (!isDraw)
-			score = neural_net_eval();
+		if (!isDraw) {
+			score = pm.isLikelyDrawnEndgame() ? 0 : neural_net_eval();
+		}
 		return score;
 	}
 	
 	public int getStaticEvaluation() {
-		// No point checking for draws, because we terminate search as soon as a likely draw is detected
-		// and return draw score, so we can't get here if the position is a likely draw, the check would
-		// be redundant
-		basicInit();
-		return neural_net_eval();
+		return isDraw ? 0 : neural_net_eval();
 	}
 	
 	public boolean goForMate() {

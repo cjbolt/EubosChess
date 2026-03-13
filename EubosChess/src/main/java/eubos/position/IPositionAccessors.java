@@ -13,6 +13,7 @@ public interface IPositionAccessors {
 	public String getFen();
 	public boolean isThreefoldRepetitionPossible();
 	public boolean isInsufficientMaterial();
+	public boolean isLikelyDrawnEndgame();
 	public IEvaluate getPositionEvaluator();
 	public String unwindMoveStack();
 	public CastlingManager getCastling();
