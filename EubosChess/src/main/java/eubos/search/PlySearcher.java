@@ -571,43 +571,42 @@ public class PlySearcher {
 		boolean inCheck = s.inCheck;
 		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
-		if (!s.inCheck) {
-			if (trans != 0L) {	
-				s.isCutOff = false;
-				s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-				
-				if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
-					int type = Transposition.getType(trans);
-					if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-						return s.hashScore;
-					}
-					s.bestScore = Transposition.getStaticEval(trans);
-					if (s.bestScore == Short.MAX_VALUE) {
-						s.bestScore = pe.lazyEvaluation(alpha, beta);
-					}
-					byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-					if (type == boundScope) {
-						s.bestScore = s.hashScore;
-					}
-				} else {
+		
+		if (trans != 0L) {	
+			s.isCutOff = false;
+			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			
+			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
+				int type = Transposition.getType(trans);
+				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					return s.hashScore;
+				}
+				s.bestScore = Transposition.getStaticEval(trans);
+				if (s.bestScore == Short.MAX_VALUE) {
+					s.bestScore = pe.lazyEvaluation(alpha, beta);
+				}
+				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+				if (type == boundScope) {
 					s.bestScore = s.hashScore;
 				}
-				
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			} else {
-				s.bestScore = pe.lazyEvaluation(alpha, beta);
+				s.bestScore = s.hashScore;
 			}
 			
-			if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
-				// Absolute depth limit, return full eval
-				// There is no move to put in the killer table when we stand Pat
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-				return s.bestScore;
-			}
-			if (s.bestScore > alpha) {
-				// Null move hypothesis
-				alpha = s.bestScore;
-			}
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+		} else if (!s.inCheck) {
+			s.bestScore = pe.lazyEvaluation(alpha, beta);
+		}
+			
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
+			// Absolute depth limit, return full eval
+			// There is no move to put in the killer table when we stand Pat
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+			return s.bestScore;
+		}
+		if (s.bestScore > alpha) {
+			// Null move hypothesis
+			alpha = s.bestScore;
 		}
 		
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);

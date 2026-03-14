@@ -45,7 +45,7 @@ public class PositionEvaluator implements IEvaluate {
 	}
 	
 	public int getStaticEvaluation() {
-		return isDraw ? 0 : neural_net_eval();
+		return pm.isLikelyDrawnEndgame() ? 0 : neural_net_eval(); //isDraw ? 0 : neural_net_eval();
 	}
 	
 	public boolean goForMate() {
