@@ -580,14 +580,15 @@ public class PlySearcher {
 				int type = Transposition.getType(trans);
 				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
 					return s.hashScore;
-				}
-				s.bestScore = Transposition.getStaticEval(trans);
-				if (s.bestScore == Short.MAX_VALUE) {
-					s.bestScore = pe.lazyEvaluation(alpha, beta);
-				}
-				byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
-				if (type == boundScope) {
-					s.bestScore = s.hashScore;
+				} else if (!s.inCheck) {
+					s.bestScore = Transposition.getStaticEval(trans);
+					if (s.bestScore == Short.MAX_VALUE) {
+						s.bestScore = pe.lazyEvaluation(alpha, beta);
+					}
+					byte boundScope = (s.hashScore > s.bestScore) ? Score.lowerBound : Score.upperBound;
+					if (type == boundScope) {
+						s.bestScore = s.hashScore;
+					}
 				}
 			} else {
 				s.bestScore = s.hashScore;

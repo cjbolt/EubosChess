@@ -421,7 +421,7 @@ public class MiniMaxMoveGeneratorTest {
 	public void test_insufficient_issues() throws IllegalNotationException {
 		setupPosition("4R3/8/8/6P1/4p2B/2bb4/4kPP1/6K1 w - - 5 105 ");
 		SearchResult res = classUnderTest.findMove((byte)12);
-		expectedMove = new GenericMove("g5g6");
+		expectedMove = new GenericMove("h4g3");
 		assertEquals(expectedMove, Move.toGenericMove(res.pv[0]));
 	}
 	
