@@ -1609,10 +1609,7 @@ public class Board {
 	
 	public void incrementallyUpdateStateForUndoCaptureForWhite(int targetPiece, int capturedPieceSquare) {
 		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
-		// Hash update is restored by copy when move is undone
-		//if (!insufficient) {
-			updateAccumulatorsForReplaceCaptureForWhite(targetPiece, capturedPieceSquare);
-		//}
+		updateAccumulatorsForReplaceCaptureForWhite(targetPiece, capturedPieceSquare);
 	}
 	
 	public void incrementallyUpdateStateForPromotionForWhite(int pieceToMove, int promotedPiece, int originBitOffset, int targetBitOffset) {
@@ -1646,10 +1643,7 @@ public class Board {
 	
 	public void incrementallyUpdateStateForUndoCaptureForBlack(int targetPiece, int capturedPieceSquare) {
 		me.updateForReplacedCapture(targetPiece, capturedPieceSquare);
-		// Hash update is restored by copy when move is undone
-		//if (!insufficient) {
-			updateAccumulatorsForReplaceCaptureForBlack(targetPiece, capturedPieceSquare);
-		//}
+		updateAccumulatorsForReplaceCaptureForBlack(targetPiece, capturedPieceSquare);
 	}
 	
 	public void incrementallyUpdateStateForPromotionForBlack(int pieceToMove, int promotedPiece, int originBitOffset, int targetBitOffset) {
@@ -1663,8 +1657,6 @@ public class Board {
 		// Possible promotions
 		if (pieces[Piece.PAWN] != 0)
 			return false;
-
-		boolean possiblyDrawn = false;
 
 		// Minor pieces
 		int numWhiteBishops = me.numberOfPieces[Piece.WHITE_BISHOP];
@@ -1681,24 +1673,29 @@ public class Board {
 			if (numWhiteRooks == 1 && numWhiteMinor < 2) {
 				// "R vs 2 minor" or "R Minor vs 2 minor"
 				if (numBlackRooks == 0 && numBlackMinor == 2) {
-					possiblyDrawn = true;
+					return true;
 				}
 				// "R Minor vs r" or "R vs r"
 				if (numBlackRooks == 1 && numBlackMinor == 0) {
-					possiblyDrawn = true;
+					return true;
 				}
 			}
 			if (numBlackRooks == 1 && numBlackMinor < 2) {
 				// "R vs 2 minor"
 				if (numWhiteRooks == 0 && numWhiteMinor == 2) {
-					possiblyDrawn = true;
+					return true;
 				}				
 				// R vs R Minor
 				if (numWhiteRooks == 1 && numWhiteMinor == 0) {
-					possiblyDrawn = true;
+					return true;
 				}
-			}	
-			if (!possiblyDrawn && (numWhiteRooks > 0 || numBlackRooks > 0)) {
+			}
+			if (numWhiteRooks == 1 && numBlackRooks == 1 &&
+				numWhiteMinor == 0 && numBlackMinor == 0) {
+				// Just two bare rooks - draw
+				return true;
+			}				
+			if (numWhiteRooks > 0 || numBlackRooks > 0) {
 				// at least one rook on the board
 				return false;
 			} else {
@@ -1717,22 +1714,19 @@ public class Board {
 				int numBlackQueens = me.numberOfPieces[Piece.BLACK_QUEEN];
 				// Q vs 2 minor
 				if (numWhiteQueens == 1 && numBlackQueens == 0 && numBlackMinor >= 2) {
-					possiblyDrawn = true;
+					return true;
 				}
 				if (numBlackQueens == 1 && numWhiteQueens == 0 && numWhiteMinor >= 2) {
-					possiblyDrawn = true;
+					return true;
 				}
 				// Q minor vs Q
 				if (numWhiteQueens == 1 && numBlackQueens == 1 && numBlackMinor == 0 && numWhiteMinor == 1) {
-					possiblyDrawn = true;
+					return true;
 				}
 				if (numBlackQueens == 1 && numWhiteQueens == 1 && numWhiteMinor == 0 && numBlackMinor == 1) {
-					possiblyDrawn = true;
+					return true;
 				}
 			}
-			// At least one queen on the board
-			if (!possiblyDrawn)
-				return false;
 		}
 		
 		return false;
