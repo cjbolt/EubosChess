@@ -36,6 +36,10 @@ public class MoveList {
 	public MoveListIterator initialiseAtPly(int bestMove, int[] killers, boolean inCheck, boolean extended, int ply) {
 		return ml[ply].initialise(bestMove, killers, inCheck, extended);
 	}
+	
+	public void legalMoveSearchedAtPly(int ply) {
+		ml[ply].state.legal_move_existed = true;
+	}
 
 	static public int getRandomMove(PositionManager pm) {
 		MoveListIterator it = new MoveListIterator(new History(), pm, 0, 0);
