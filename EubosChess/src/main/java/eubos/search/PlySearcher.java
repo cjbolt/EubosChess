@@ -571,6 +571,7 @@ public class PlySearcher {
 		boolean inCheck = s.inCheck;
 		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
+		boolean score_valid = false;
 		if (!s.inCheck) {
 			if (trans != 0L) {	
 				s.isCutOff = false;
@@ -653,6 +654,20 @@ public class PlySearcher {
 					break;
 				}
 				pc.update(currPly, bestMove);
+			}
+		}
+		
+		if (s.moveNumber == 0 && s.inCheck) {
+			// Requires check evasion: search a single quiet move and use that score instead of static.
+			MoveListIterator it = ml.initialiseAtPly(prevBestMove, null, s.inCheck, false, currPly);
+			int singleMove = Move.NULL_MOVE;
+			while (it.hasNext()) {
+				singleMove = it.nextInt();
+				if (pm.performMove(singleMove)) {
+					s.bestScore = -pe.getFullEvaluation();
+					pm.unperformMove();
+					break;
+				}
 			}
 		}
 

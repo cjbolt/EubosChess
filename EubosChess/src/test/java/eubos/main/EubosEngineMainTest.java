@@ -181,7 +181,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_KQk_mate_in_7_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"5Q2/6K1/8/3k4/8/8/8/8 w - - 1 113"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"f8b4"+CMD_TERMINATOR));
 		assertTrue(performTestExpectMate(15000, 7));
 	}
 	
@@ -220,7 +220,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		int mateDepth = 0;
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/3K1k2/8/8/8/7r b - - 5 111"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"19"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"h1d1"+CMD_TERMINATOR));
 		mateDepth = 11;
 		assertTrue(performTestExpectMate(15000, mateDepth));
 	}
@@ -229,7 +229,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_mate_in_3_guardian3713() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"a5c3"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		assertTrue(performTestExpectMate(5000, 3));
 	}
 	
