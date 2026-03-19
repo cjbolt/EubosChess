@@ -36,7 +36,7 @@ UCI option | Eubos functionality
 Threads | Sets the number of worker threads that shall be used to perform the search. Configuring 1 means Eubos shall be single-threaded, greater than 1 and it will run multi-threaded.
 Hash | Sets the size of the hash table to use, in Megabytes. The hash table is shared by all the threads, it is not duplicated per worker thread.
 Move Overhead | Factor for this number of milliseconds on the clock each time a move must be made. This is useful for countering latency in internet games.
-Training Data Generation | A boolean enabling exporting a bullet format text file with the FEN and score at each ply search
+Training Data Generation | A boolean enabling exporting a bullet format text file with the FEN and score at each ply search. If this is set true, then the search should approximate shannon type A. Therefore aspiration search will be disabled; null move pruning and (reverse) futility pruning will be disabled, late move reduction will also be disabled. A fixed depth search shall be employed. Note also that the first 6 moves in the game shall be selected at random, to encourage a wider set of openings. These 6 moves will be completely unsearched.
 Random Move | A boolean used to generate random games to widen the training data coverage
 
 ## Installation
