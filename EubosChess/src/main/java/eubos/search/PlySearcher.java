@@ -633,31 +633,6 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			
-//			if (Move.isRegular(currMove)) {
-//				/* search only one quiet, legal move when in check in extended search */
-//				positionScore = -pe.lazyEvaluation(-beta, -alpha);
-//				pm.unperformMove();
-//				if (positionScore > alpha) {
-//					alpha = s.bestScore = positionScore;
-//					bestMove = currMove;
-//					if (alpha >= beta) {
-//						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
-//						refuted = true;
-//						break;
-//					}
-//					pc.update(currPly, bestMove);
-//				}
-//				break;
-//			} else {
-//				currPly++;
-//				
-//				state[currPly].update();
-//				positionScore = (short) -extendedSearch(-beta, -alpha, depth-1);
-//				
-//				pm.unperformMove();
-//				currPly--;
-//			}
-			
 			currPly++;
 			
 			state[currPly].update();
@@ -685,7 +660,7 @@ public class PlySearcher {
 			}
 			
 			if (Move.isRegular(currMove) && s.moveNumber == 4) {
-				/* search only one quiet, legal move when in check in extended search */
+				/* Search only a few check evasion quiet moves in extended search. */
 				break;
 			}
 		}
