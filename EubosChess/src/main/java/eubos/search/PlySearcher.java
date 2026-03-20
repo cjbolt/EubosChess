@@ -627,10 +627,37 @@ public class PlySearcher {
 				continue;
 			}			
 			s.moveNumber += 1;
+			ml.legalMoveSearchedAtPly(currPly);
 
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+			
+//			if (Move.isRegular(currMove)) {
+//				/* search only one quiet, legal move when in check in extended search */
+//				positionScore = -pe.lazyEvaluation(-beta, -alpha);
+//				pm.unperformMove();
+//				if (positionScore > alpha) {
+//					alpha = s.bestScore = positionScore;
+//					bestMove = currMove;
+//					if (alpha >= beta) {
+//						if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(positionScore);
+//						refuted = true;
+//						break;
+//					}
+//					pc.update(currPly, bestMove);
+//				}
+//				break;
+//			} else {
+//				currPly++;
+//				
+//				state[currPly].update();
+//				positionScore = (short) -extendedSearch(-beta, -alpha, depth-1);
+//				
+//				pm.unperformMove();
+//				currPly--;
+//			}
+			
 			currPly++;
 			
 			state[currPly].update();
@@ -638,6 +665,7 @@ public class PlySearcher {
 			
 			pm.unperformMove();
 			currPly--;
+			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
@@ -655,19 +683,10 @@ public class PlySearcher {
 				}
 				pc.update(currPly, bestMove);
 			}
-		}
-		
-		if (s.moveNumber == 0 && s.inCheck) {
-			// Requires check evasion: search a single quiet move and use that score instead of static.
-			MoveListIterator it = ml.initialiseAtPly(prevBestMove, null, s.inCheck, false, currPly);
-			int singleMove = Move.NULL_MOVE;
-			while (it.hasNext()) {
-				singleMove = it.nextInt();
-				if (pm.performMove(singleMove)) {
-					s.bestScore = -pe.getFullEvaluation();
-					pm.unperformMove();
-					break;
-				}
+			
+			if (Move.isRegular(currMove) && s.moveNumber == 4) {
+				/* search only one quiet, legal move when in check in extended search */
+				break;
 			}
 		}
 

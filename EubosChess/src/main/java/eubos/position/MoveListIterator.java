@@ -31,7 +31,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 		// Cached data provided from PlySearcher
 		boolean needToEscapeMate;
 		boolean extendedSearch;
-		boolean frontierNode;
+		boolean legal_move_existed;
 		int bestMove;
 		int[] killers;
 		
@@ -48,6 +48,7 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			bestMove = best;			
 			nextCheckPoint = 0;
 			moves_index = 0;
+			legal_move_existed = false;
 		}
 	}
 	
@@ -175,8 +176,8 @@ public class MoveListIterator implements PrimitiveIterator.OfInt {
 			}
 			// Note fall-through to next stage if no captures
 		case 3:
-			if (state.extendedSearch) {
-				// Quiescent search shall terminate here
+			if (state.extendedSearch && (!state.needToEscapeMate || state.legal_move_existed)) {
+				// Quiescent search shall terminate here, if the side to move is not in check or a legal move was already searched
 				empty();
 				break;
 			} else if (state.killers == null) {
