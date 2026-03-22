@@ -568,20 +568,19 @@ public class PlySearcher {
 		
 		long trans = tt.getTransposition(pos.getHash());
 		SearchState s = state[currPly];
-		boolean inCheck = s.inCheck;
 		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
 		boolean score_valid = false;
-		if (!s.inCheck) {
-			if (trans != 0L) {	
-				s.isCutOff = false;
-				s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-				
-				if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
-					int type = Transposition.getType(trans);
-					if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-						return s.hashScore;
-					}
+		if (trans != 0L) {	
+			s.isCutOff = false;
+			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			
+			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
+				int type = Transposition.getType(trans);
+				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					return s.hashScore;
+				}
+				if (!s.inCheck) {
 					s.bestScore = Transposition.getStaticEval(trans);
 					if (s.bestScore == Short.MAX_VALUE) {
 						s.bestScore = pe.lazyEvaluation(alpha, beta);
@@ -590,25 +589,26 @@ public class PlySearcher {
 					if (type == boundScope) {
 						s.bestScore = s.hashScore;
 					}
-				} else {
-					s.bestScore = s.hashScore;
 				}
-				
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			} else {
-				s.bestScore = pe.lazyEvaluation(alpha, beta);
+				s.bestScore = s.hashScore;
 			}
 			
-			if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
-				// Absolute depth limit, return full eval
-				// There is no move to put in the killer table when we stand Pat
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-				return s.bestScore;
-			}
-			if (s.bestScore > alpha) {
-				// Null move hypothesis
-				alpha = s.bestScore;
-			}
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+		} else if (!s.inCheck) {
+			/* If in check we will need to evaluate check evasions, not null move hypothesis. */
+			s.bestScore = pe.lazyEvaluation(alpha, beta);
+		}
+			
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
+			// Absolute depth limit, return full eval
+			// There is no move to put in the killer table when we stand Pat
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+			return s.bestScore;
+		}
+		if (s.bestScore > alpha) {
+			// Null move hypothesis
+			alpha = s.bestScore;
 		}
 		
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -659,14 +659,20 @@ public class PlySearcher {
 				pc.update(currPly, bestMove);
 			}
 			
-			if (Move.isRegular(currMove) && s.moveNumber == 4) {
+			if (Move.isRegular(currMove) && s.moveNumber == 2) {
 				/* Search only a few check evasion quiet moves in extended search. */
 				break;
 			}
 		}
 
-		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+		if (!isTerminated()) {
+			if (s.moveNumber == 0 && s.inCheck) {
+				// No moves searched at this point means a legitimate checkmate occurred
+				return Score.getMateScore(currPly);
+			}
+			if (bestMove != Move.NULL_MOVE) {
+				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			}
 		}
 
 		return s.bestScore;
