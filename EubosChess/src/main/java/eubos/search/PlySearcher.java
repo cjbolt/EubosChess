@@ -659,7 +659,7 @@ public class PlySearcher {
 				pc.update(currPly, bestMove);
 			}
 			
-			if (Move.isRegular(currMove) && s.moveNumber == 2) {
+			if (Move.isRegular(currMove) && s.moveNumber == 4) {
 				/* Search only a few check evasion quiet moves in extended search. */
 				break;
 			}
