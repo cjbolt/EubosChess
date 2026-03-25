@@ -648,7 +648,7 @@ public class PlySearcher {
 			if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
-			if (positionScore > alpha) {
+			if (positionScore > alpha || (positionScore > s.bestScore && s.inCheck)) {
 				alpha = s.bestScore = positionScore;
 				bestMove = currMove;
 				if (alpha >= beta) {

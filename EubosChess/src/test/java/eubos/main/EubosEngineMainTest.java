@@ -189,7 +189,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_mate_in_3() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"6k1/3B4/5Qp1/6P1/2K4P/8/8/8 w - - 80 125"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"d7e6"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"3"+CMD_TERMINATOR, BEST_PREFIX+"d7e6"+CMD_TERMINATOR));
 		assertTrue(performTestExpectMate(15000, 3));
 	}
 	
