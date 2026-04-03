@@ -831,4 +831,12 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		classUnderTest.sendBestMoveCommand(res);
 		assertTrue(performTest(1000));
 	}
+	
+	@Test
+	public void test_find_forced_draw_score() throws IllegalNotationException, IOException, InterruptedException {
+		setupEngine();
+		commands.add(new CommandPair(POS_FEN_PREFIX+"8/8/8/8/8/7p/4k2P/6K1 w - - 0 150"+CMD_TERMINATOR, null));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"20"+CMD_TERMINATOR, BEST_PREFIX+"g1h1"+CMD_TERMINATOR)); // The move is forced.
+		assertTrue(performTest(5000));	
+	}
 }

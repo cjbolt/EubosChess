@@ -7,13 +7,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Stack;
 
+import eubos.board.Board;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.search.transposition.Transposition;
 
 public class SearchDebugAgent {
 
-	public static final boolean DEBUG_ENABLED = true;
+	public static final boolean DEBUG_ENABLED = false;
 	
 	private String indent = "";
 	private FileWriter fw;
@@ -85,6 +86,18 @@ public class SearchDebugAgent {
 			pv.pop();
 		}
 	}
+	
+	void printLmrEntry(int depth, int currMove, boolean scout) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("\n%sLmrEntry depth=%d move:%s scout:%s pv=%s", indent, depth, Move.toString(currMove), scout, pv.toString()));
+		}
+	}
+	
+	void printLmrExit(int depth, int currMove, boolean scout) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sLmrExit depth=%d move:%s scout:%s pv=%s\n", indent, depth, Move.toString(currMove), scout, pv.toString()));
+		}
+	}
 
 	void printPrincipalContinuation(PrincipalContinuation pc) {
 		if (DEBUG_ENABLED) {
@@ -129,9 +142,21 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public void printTransUpdate(long trans, long hashCode) {
+	public void printTransUpdate(long trans, long hashCode, Board theBoard) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s%s hash:%d", indent, Transposition.report(trans), hashCode));
+			printOutput(String.format("%s%s updated hash:%d pv=%s", indent, Transposition.report(trans, theBoard), hashCode, pv.toString()));
+		}		
+	}
+	
+	public void printResearchingPly() {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sResearching PLY pv=%s", indent, pv.toString()));
+		}		
+	}
+	
+	public void printCheckExtension() {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%scheck extension pv=%s", indent, pv.toString()));
 		}		
 	}
 	
@@ -225,6 +250,24 @@ public class SearchDebugAgent {
 	public void printHash(long hash) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%shash=0x%X", indent, hash));
+		}
+	}
+	
+	public void printStandPat(int score) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sStand Pat score=%d", indent, score));
+		}
+	}
+	
+	public void printLmr(int lmr) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sTrying LMR=%d", indent, lmr));
+		}
+	}
+	
+	public void printFailedLmr() {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sFailed LMR Researching", indent));
 		}
 	}
 	
