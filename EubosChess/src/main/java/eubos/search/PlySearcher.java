@@ -307,6 +307,8 @@ public class PlySearcher {
 				quietMoveNumber++;
 			}
 			
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
+			
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.alpha, s.adaptiveBeta, true);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
@@ -499,7 +501,6 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			s.moveNumber += 1;
 			if (s.moveNumber == 1) {
-				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 				pc.initialise(currPly, currMove);
 				bestMove = currMove;
 			}
@@ -514,6 +515,7 @@ public class PlySearcher {
 			}
 			
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(s.alpha, s.beta);
+			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.alpha, s.adaptiveBeta, true);
 			
