@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Stack;
 
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
@@ -12,12 +13,13 @@ import eubos.search.transposition.Transposition;
 
 public class SearchDebugAgent {
 
-	public static final boolean DEBUG_ENABLED = false;
+	public static final boolean DEBUG_ENABLED = true;
 	
 	private String indent = "";
 	private FileWriter fw;
 	private String filenameBase = "";
 	private int currPly = 0;
+	private Stack<String> pv = new Stack<String>();
 	
 	public SearchDebugAgent(int moveNumber, boolean isWhite) {
 		if (DEBUG_ENABLED) {
@@ -73,12 +75,14 @@ public class SearchDebugAgent {
 	void printPerformMove(int currMove) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%sdo(%s) @%d", indent, Move.toString(currMove), currPly));
+			pv.push(Move.toString(currMove));
 		}
 	}
 
 	void printUndoMove(int currMove, int positionScore) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%sundo(%s, %s) @%d", indent, Move.toString(currMove), Score.toString((short)positionScore), currPly));
+			pv.pop();
 		}
 	}
 
@@ -158,7 +162,7 @@ public class SearchDebugAgent {
 
 	public void printRepeatedPositionHash(long hash, String fen) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s3-fold in hash hit rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
+			printOutput(String.format("%s3-fold in hash hit rep @%d fen:%s pv=%s", indent, currPly, fen, pv.toString()));
 		}
 	}
 
@@ -205,6 +209,12 @@ public class SearchDebugAgent {
 			printOutput(String.format("%sext search cut-off score:%s", indent, Score.toString((short)plyScore)));
 		}		
 	}
+	
+	public void printHashCutOffWithScore(int plyScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%shash cut-off score:%s", indent, Score.toString((short)plyScore)));
+		}		
+	}
 
 	public void printNullMove(int R) {
 		if (DEBUG_ENABLED) {
@@ -215,6 +225,12 @@ public class SearchDebugAgent {
 	public void printHash(long hash) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%shash=0x%X", indent, hash));
+		}
+	}
+	
+	public void printNewBestAtRoot(int plyScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%snew best score at root=%d", indent, plyScore));
 		}
 	}
 }
