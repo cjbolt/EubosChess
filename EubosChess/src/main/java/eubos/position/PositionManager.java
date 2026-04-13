@@ -216,7 +216,7 @@ public class PositionManager implements IChangePosition, IPositionAccessors {
 		} else {
 			fen.append('-');
 		}
-		fen.append(" - " + getMoveNumber());
+		fen.append(" 0 " + getMoveNumber());
 		return fen.toString();
 	}
 	
