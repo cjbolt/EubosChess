@@ -119,6 +119,8 @@ public class EubosEngineMain extends AbstractEngine {
 	public boolean generate_training_data = false;
 	public boolean random_move_training = false;
 	
+	public static final int GENERATE_TRAINING_FIRST_MOVE = 7;
+	
 	// Hash configuration
 	public static final int MIN_HASH_SIZE = 4;
 	public static final int MAX_HASH_SIZE = 4*1000;
@@ -256,7 +258,7 @@ public class EubosEngineMain extends AbstractEngine {
 			sendInfoString(String.format("forced %s", Move.toString(forcedMove)));
 			// Ensures we don't try to update training data for a forced move, where score is invalid
 			convertToGenericAndSendBestMove(forcedMove);
-		} else if ((generate_training_data && !random_move_training && rootPosition.getMoveNumber() < 7) ||
+		} else if ((generate_training_data && !random_move_training && rootPosition.getMoveNumber() < GENERATE_TRAINING_FIRST_MOVE) ||
 				   rootPosition.isInsufficientMaterial()) {
 			// When generating training data, the first few moves should be random and unsearched...
 			int randomMove = MoveList.getRandomMove(rootPosition);
@@ -265,7 +267,7 @@ public class EubosEngineMain extends AbstractEngine {
 			// The move searcher will report the best move found via a callback to this object, 
 			// this will occur when the tree search is concluded and the thread completes execution.
 			
-			//Note: will come here if generating training and random move or after first 7 moves played randomly
+			//Note: will come here if generating training and random move or after GENERATE_TRAINING_FIRST_MOVEs played randomly
 			moveSearcherFactory(command);
 			ms.start();
 		}
@@ -596,7 +598,7 @@ public class EubosEngineMain extends AbstractEngine {
 		if (generate_training_data) {
 			trustedMove = random_move_training ? selectedRandomMove : getTrustedMove(result);
 			moveNumber = rootPosition.getMoveNumber();
-			if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > 7) {
+			if (result != null && result.score != Score.PROVISIONAL_ALPHA && moveNumber > GENERATE_TRAINING_FIRST_MOVE) {
 				updateTrainingData(result.score, trustedMove);
 			}
 			if (random_move_training) {
