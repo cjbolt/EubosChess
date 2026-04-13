@@ -337,7 +337,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
     	applyMoveList.add(new GenericMove("b4c3")); // en passant capture!
     	// In the defect case the captured pawn was not removed from the board.
 		classUnderTest.createPositionFromAnalyseCommand(new EngineAnalyzeCommand(new GenericBoard("r4b2/1b2k1p1/1B1pPp1q/p2P1r2/1p6/1P1N4/P1P3QP/R5RK w - - 4 32"), applyMoveList));
-		assertEquals("r4b2/1b2k1p1/1B1pPp1q/p2P1r2/8/1PpN4/P5QP/R5RK w - - - 33", classUnderTest.lastFen);
+		assertEquals("r4b2/1b2k1p1/1B1pPp1q/p2P1r2/8/1PpN4/P5QP/R5RK w - - 0 33", classUnderTest.lastFen);
     }
     
 	@Test
