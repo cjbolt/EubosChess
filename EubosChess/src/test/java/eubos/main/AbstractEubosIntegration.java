@@ -207,7 +207,7 @@ public abstract class AbstractEubosIntegration {
 						// Ignore any line starting with info, if not checking infos
 					    parsedCmd = parseReceivedCommandString(recievedCmd, checkInfoMsgs);
 					    if (!parsedCmd.isBlank()) {
-					    	//System.err.println(parsedCmd);
+					    	System.err.println(parsedCmd);
 							if (currCmdPair.isExpectedOutput(parsedCmd)) {
 								received = true;
 								accumulate = false;
