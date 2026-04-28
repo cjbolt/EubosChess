@@ -5,7 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Stack;
 
+import eubos.board.Board;
 import eubos.position.IPositionAccessors;
 import eubos.position.Move;
 import eubos.search.transposition.Transposition;
@@ -18,6 +20,7 @@ public class SearchDebugAgent {
 	private FileWriter fw;
 	private String filenameBase = "";
 	private int currPly = 0;
+	private Stack<String> pv = new Stack<String>();
 	
 	public SearchDebugAgent(int moveNumber, boolean isWhite) {
 		if (DEBUG_ENABLED) {
@@ -73,12 +76,26 @@ public class SearchDebugAgent {
 	void printPerformMove(int currMove) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%sdo(%s) @%d", indent, Move.toString(currMove), currPly));
+			pv.push(Move.toString(currMove));
 		}
 	}
 
 	void printUndoMove(int currMove, int positionScore) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%sundo(%s, %s) @%d", indent, Move.toString(currMove), Score.toString((short)positionScore), currPly));
+			pv.pop();
+		}
+	}
+	
+	void printLmrEntry(int depth, int currMove, boolean scout) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("\n%sLmrEntry depth=%d move:%s scout:%s pv=%s", indent, depth, Move.toString(currMove), scout, pv.toString()));
+		}
+	}
+	
+	void printLmrExit(int depth, int currMove, boolean scout) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sLmrExit depth=%d move:%s scout:%s pv=%s\n", indent, depth, Move.toString(currMove), scout, pv.toString()));
 		}
 	}
 
@@ -125,9 +142,21 @@ public class SearchDebugAgent {
 		}
 	}
 
-	public void printTransUpdate(long trans, long hashCode) {
+	public void printTransUpdate(long trans, long hashCode, Board theBoard) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s%s hash:%d", indent, Transposition.report(trans), hashCode));
+			printOutput(String.format("%s%s updated hash:%d pv=%s", indent, Transposition.report(trans, theBoard), hashCode, pv.toString()));
+		}		
+	}
+	
+	public void printResearchingPly() {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sResearching PLY pv=%s", indent, pv.toString()));
+		}		
+	}
+	
+	public void printCheckExtension() {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%scheck extension pv=%s", indent, pv.toString()));
 		}		
 	}
 	
@@ -158,7 +187,7 @@ public class SearchDebugAgent {
 
 	public void printRepeatedPositionHash(long hash, String fen) {
 		if (DEBUG_ENABLED) {
-			printOutput(String.format("%s3-fold in hash hit rep @%d hash:%d fen:%s", indent, currPly, hash, fen));
+			printOutput(String.format("%s3-fold in hash hit rep @%d fen:%s pv=%s", indent, currPly, fen, pv.toString()));
 		}
 	}
 
@@ -205,6 +234,12 @@ public class SearchDebugAgent {
 			printOutput(String.format("%sext search cut-off score:%s", indent, Score.toString((short)plyScore)));
 		}		
 	}
+	
+	public void printHashCutOffWithScore(int plyScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%shash cut-off score:%s", indent, Score.toString((short)plyScore)));
+		}		
+	}
 
 	public void printNullMove(int R) {
 		if (DEBUG_ENABLED) {
@@ -215,6 +250,30 @@ public class SearchDebugAgent {
 	public void printHash(long hash) {
 		if (DEBUG_ENABLED) {
 			printOutput(String.format("%shash=0x%X", indent, hash));
+		}
+	}
+	
+	public void printStandPat(int score) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sStand Pat score=%d", indent, score));
+		}
+	}
+	
+	public void printLmr(int lmr) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sTrying LMR=%d", indent, lmr));
+		}
+	}
+	
+	public void printFailedLmr() {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%sFailed LMR Researching", indent));
+		}
+	}
+	
+	public void printNewBestAtRoot(int plyScore) {
+		if (DEBUG_ENABLED) {
+			printOutput(String.format("%snew best score at root=%d", indent, plyScore));
 		}
 	}
 }

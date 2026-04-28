@@ -169,7 +169,7 @@ public class PlySearcher {
 		lastAspirationFailed = false;
 		SearchState s = state[0];
 		s.update();
-		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
+		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5;
 		boolean doFullWidthSearch = !doAspiratedSearch;
 
 		if (doAspiratedSearch) {
@@ -260,6 +260,7 @@ public class PlySearcher {
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
 		if (s.inCheck) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printCheckExtension();
 			++depth;
 		}
 		
@@ -291,7 +292,7 @@ public class PlySearcher {
 			if (!pm.performMove(currMove)) {
 				continue;
 			}
-				
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);	
 			s.moveNumber += 1;
 			if (EubosEngineMain.ENABLE_UCI_MOVE_NUMBER) {
 				sm.setCurrentMove(currMove, s.moveNumber);
@@ -306,20 +307,17 @@ public class PlySearcher {
 				quietMoveNumber++;
 			}
 			
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(s.alpha, s.beta);
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
-			
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, s.alpha, s.adaptiveBeta, true);
-
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
-			if (isTerminated()) { pm.unperformMove(); return s.bestScore;	} // don't update PV if out of time for search, instead return last fully searched PV.
+			if (isTerminated()) { 
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
+				pm.unperformMove(); 
+				return s.bestScore;	// don't update PV if out of time for search, instead return last fully searched PV.
+			}
 			
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
@@ -332,14 +330,18 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printResearchingPly();
 					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, false, positionScore, s.beta, false);
 				}
+				
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 				pm.unperformMove();
 				
 				if (isTerminated()) { return s.bestScore;	} // could have timed out during research of negascout!
 				
 				if (s.bestScore > s.alpha) {
 					s.alpha = s.bestScore;
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printNewBestAtRoot(s.bestScore);
 					if (EubosEngineMain.ENABLE_LOGGING) {
 						log(String.format("ALPHA INCREASED AT ROOT score=%d alpha=%d beta=%d depth=%d move=%s",
 								s.bestScore, s.alpha, s.beta, originalSearchDepthRequiredInPly, Move.toString(bestMove)));
@@ -378,7 +380,12 @@ public class PlySearcher {
 	int negaScout(int depth, boolean nullCheckEnabled, int alpha, int beta, boolean lmrApplied)  {
 		
 		// Check for absolute draws
-		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
+		if (pos.isThreefoldRepetitionPossible()) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+			return 0;
+		} else if (pos.isInsufficientMaterial()) {
+			return 0;
+		}
 		
 		SearchState s = state[currPly];
 		s.initialise(currPly, alpha, beta);
@@ -408,6 +415,7 @@ public class PlySearcher {
 		
 		// Extend search for in-check scenarios, treated outside of quiescence search
 		if (s.inCheck) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printCheckExtension();
 			++depth;
 		}
 		
@@ -418,12 +426,12 @@ public class PlySearcher {
 		long trans = tt.getTransposition(pos.getHash());
 		if (trans != 0L) {
 			evaluateTransposition(trans, depth);
-			if (s.isCutOff) {
+			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_REGULAR_SEARCH && s.isCutOff) {
 				return s.hashScore;
 			}
 		}
 		
-		if (!s.inCheck && !pe.goForMate() && !eubos.generate_training_data) {
+		if (!s.inCheck && !pe.goForMate()) {
 			// Reverse futility pruning
 			if (EubosEngineMain.ENABLE_REVERSE_FUTILITY_PRUNING && 
 				depth < 8 &&
@@ -468,7 +476,7 @@ public class PlySearcher {
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
 			if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-				if (!eubos.generate_training_data && quietMoveNumber >= 1) {
+				if (quietMoveNumber >= 1) {
 					if (neitherAlphaBetaIsMate() && !pe.goForMate() && depth <= 2) {
 						if (!s.isStaticValid) {
 							setStaticEvaluation(trans);
@@ -490,12 +498,13 @@ public class PlySearcher {
 			if (!pm.performMove(currMove)) {
 				continue;
 			}
-			
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
 			s.moveNumber += 1;
 			if (s.moveNumber == 1) {
 				pc.initialise(currPly, currMove);
 				bestMove = currMove;
 			}
+			
 			if (EubosEngineMain.ENABLE_FUTILITY_PRUNING_OF_KILLER_MOVES ? Move.isRegularOrKiller(currMove) : Move.isRegular(currMove)) {
 				quietMoveNumber++;
 			} else {
@@ -508,15 +517,13 @@ public class PlySearcher {
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printNormalSearch(s.alpha, s.beta);
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 			positionScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, s.alpha, s.adaptiveBeta, true);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
 			
-			if (isTerminated()) { pm.unperformMove(); return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
+			if (isTerminated()) { 
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
+				pm.unperformMove(); return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
 			if (positionScore > s.bestScore) {
@@ -524,6 +531,7 @@ public class PlySearcher {
 				if (s.adaptiveBeta == s.beta || depth < 2) {
 					s.bestScore = positionScore;
 				} else {
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printResearchingPly();
 					s.bestScore = doLmrSubTreeSearch(depth, currMove, quietMoveNumber, lmrApplied, positionScore, s.beta, false);
 				}
 				if (s.bestScore > s.alpha) {
@@ -535,11 +543,14 @@ public class PlySearcher {
 					ml.history.updateMove(depth, bestMove);
 					if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
 					refuted = true;
+					if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 					pm.unperformMove();
 					break;
 				}
 				s.adaptiveBeta = s.alpha + 1;
 			}
+			
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
 			pm.unperformMove();
 		}
 		
@@ -557,31 +568,35 @@ public class PlySearcher {
 	@SuppressWarnings("unused")
 	int extendedSearch(int alpha, int beta, int depth)  {
 		
+		// Check for absolute draws
+		if (pos.isThreefoldRepetitionPossible()) {
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRepeatedPositionHash(pos.getHash(), pos.getFen());
+			return 0;
+		} else if (pos.isInsufficientMaterial()) {
+			return 0;
+		}
+		
 		if (SearchDebugAgent.DEBUG_ENABLED) sda.printExtSearch(alpha, beta);
 		if (currPly > extendedSearchDeepestPly) {
 			extendedSearchDeepestPly = currPly;
 		}
 		pc.initialise(currPly);
 		
-		// Check for absolute draws
-		if (pos.isThreefoldRepetitionPossible() || pos.isInsufficientMaterial()) return 0;
-		
 		long trans = tt.getTransposition(pos.getHash());
 		SearchState s = state[currPly];
-		boolean inCheck = s.inCheck;
 		s.initialise(currPly, alpha, beta);
 		int prevBestMove = Move.NULL_MOVE;
 		boolean score_valid = false;
-		if (!s.inCheck) {
-			if (trans != 0L) {	
-				s.isCutOff = false;
-				s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
-				
-				if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
-					int type = Transposition.getType(trans);
-					if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
-						return s.hashScore;
-					}
+		if (trans != 0L) {	
+			s.isCutOff = false;
+			s.hashScore = convertMateScoreForPositionInSearchTree(Transposition.getScore(trans));
+			
+			if (EubosEngineMain.ENABLE_TT_CUT_OFFS_IN_EXTENDED_SEARCH) {
+				int type = Transposition.getType(trans);
+				if (hasSearchedPv && type == (s.hashScore >= beta ? Score.lowerBound : Score.upperBound)) {
+					return s.hashScore;
+				}
+				if (!s.inCheck) {
 					s.bestScore = Transposition.getStaticEval(trans);
 					if (s.bestScore == Short.MAX_VALUE) {
 						s.bestScore = pe.lazyEvaluation(alpha, beta);
@@ -590,25 +605,27 @@ public class PlySearcher {
 					if (type == boundScope) {
 						s.bestScore = s.hashScore;
 					}
-				} else {
-					s.bestScore = s.hashScore;
 				}
-				
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
 			} else {
-				s.bestScore = pe.lazyEvaluation(alpha, beta);
+				s.bestScore = s.hashScore;
 			}
 			
-			if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
-				// Absolute depth limit, return full eval
-				// There is no move to put in the killer table when we stand Pat
-				if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
-				return s.bestScore;
-			}
-			if (s.bestScore > alpha) {
-				// Null move hypothesis
-				alpha = s.bestScore;
-			}
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsSeedMoveList(pos.getHash(), trans);
+		} else if (!s.inCheck) {
+			/* If in check we will need to evaluate check evasions, not null move hypothesis. */
+			s.bestScore = pe.lazyEvaluation(alpha, beta);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printStandPat(s.bestScore);
+		}
+			
+		if (currPly >= EubosEngineMain.SEARCH_DEPTH_IN_PLY || s.bestScore >= beta) {
+			// Absolute depth limit, return full eval
+			// There is no move to put in the killer table when we stand Pat
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printRefutationFound(s.bestScore);
+			return s.bestScore;
+		}
+		if (s.bestScore > alpha) {
+			// Null move hypothesis
+			alpha = s.bestScore;
 		}
 		
 		if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
@@ -648,7 +665,7 @@ public class PlySearcher {
 			if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
-			if (positionScore > alpha) {
+			if (positionScore > alpha || (positionScore > s.bestScore && s.inCheck)) {
 				alpha = s.bestScore = positionScore;
 				bestMove = currMove;
 				if (alpha >= beta) {
@@ -659,14 +676,20 @@ public class PlySearcher {
 				pc.update(currPly, bestMove);
 			}
 			
-			if (Move.isRegular(currMove) && s.moveNumber == 4) {
+			if (Move.isRegular(currMove) && s.moveNumber == 1) {
 				/* Search only a few check evasion quiet moves in extended search. */
 				break;
 			}
 		}
 
-		if (!isTerminated() && bestMove != Move.NULL_MOVE) {
-			trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+		if (!isTerminated()) {
+			if (s.moveNumber == 0 && s.inCheck) {
+				// No moves searched at this point means a legitimate checkmate occurred
+				return Score.getMateScore(currPly);
+			}
+			if (bestMove != Move.NULL_MOVE) {
+				trans = updateTranspositionTable(trans, (byte) depth, bestMove, (short) s.bestScore, refuted ? Score.lowerBound : Score.upperBound);
+			}
 		}
 
 		return s.bestScore;
@@ -709,8 +732,13 @@ public class PlySearcher {
 			}
 			
 			if (check_for_refutation) {
+				// Is the hash move a move that leads to draw by repetition?
+				s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+				pm.performMove(s.prevBestMove); // If it is, can't cause a cut-off based on hash score.
+				boolean draws = pos.isThreefoldRepetitionPossible();
+				pm.unperformMove();
 				// Determine if good enough for a refutation...
-				if (s.alpha >= s.beta) {
+				if (s.alpha >= s.beta && !draws) {
 		        	if (EubosEngineMain.ENABLE_LOGGING) {
 		        		if (currPly == 0)
 		        			log(String.format("Trans cut-off as alpha=%d >= beta=%d",
@@ -724,7 +752,7 @@ public class PlySearcher {
 					s.isCutOff = true;
 					pc.set(currPly, trans_move);
 				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printCutOffWithScore(s.hashScore);
+				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashCutOffWithScore(s.hashScore);
 				} else {
 					s.isHashScoreValid = true;
 				}
@@ -742,6 +770,7 @@ public class PlySearcher {
 		}
 		trans = tt.setTransposition(pos.getHash(), trans, depth, scoreFromDownTree, plyBound, (short)currMove, pos.getMoveNumber(), 
 				s.isStaticValid ? s.staticEval : Short.MAX_VALUE);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printTransUpdate(trans, pos.getHash(), pos.getTheBoard());
 		return trans;
 	}
 	
@@ -800,6 +829,8 @@ public class PlySearcher {
 	private int doLmrSubTreeSearch(int depth, int currMove, int moveNumber, boolean lmrApplied, int alpha, int beta, boolean scout) {
 		int positionScore = 0;
 		boolean passedLmr = false;
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.printLmrEntry(depth, currMove, scout);
+		if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
 		currPly++;
 		SearchState s = state[currPly];
 		if (scout) {
@@ -816,16 +847,21 @@ public class PlySearcher {
 		
 			// Calculate reduction, 1 for the first few moves, then the closer to the root node, the more severe the reduction
 			int lmr = (s.inCheck || moveNumber < depth/2) ? 1 : Math.max(1, depth/4);
+			if (SearchDebugAgent.DEBUG_ENABLED) sda.printLmr(lmr);
 			positionScore = -negaScout(depth-1-lmr, -beta, -alpha);
 			if (positionScore <= alpha) {
 				passedLmr = true;
+			} else {
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printFailedLmr();
 			}
 		}
 		if (!passedLmr) {
 			// Re-search if the reduced search increased alpha 
 			positionScore = -negaScout(depth-1, true, -beta, -alpha, false);
 		}
-		currPly--;
+    	currPly--;
+    	if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+    	if (SearchDebugAgent.DEBUG_ENABLED) sda.printLmrExit(depth, currMove, scout);
 		return positionScore;
 	}
 	

@@ -118,8 +118,10 @@ public final class Transposition {
 	}
 	
 	public static String report(long trans, Board theBoard) {
-		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d static=%d", 
-				Move.toString(Move.valueOfFromTransposition(trans, theBoard)),
+		int best = Move.valueOfFromTransposition(trans, theBoard);
+		String bestMove = best != Move.NULL_MOVE ? Move.toString(best) : "null";
+	    String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d static=%d", 
+	    		bestMove,
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),
@@ -129,8 +131,10 @@ public final class Transposition {
 	}
 	
 	public static String report(long trans) {
+		int best = Move.valueOfFromTransposition(trans);
+		String bestMove = best != Move.NULL_MOVE ? Move.toString(best) : "null";
 		String output = String.format("trans best=%s, dep=%d, sc=%s, type=%s age=%d static=%d",
-				Move.toString(Move.valueOfFromTransposition(trans)),
+				bestMove,
 				getDepthSearchedInPly(trans),
 				Score.toString((short)(trans >>> 32)),
 				getType(trans),
