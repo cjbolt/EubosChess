@@ -169,7 +169,7 @@ public class PlySearcher {
 		lastAspirationFailed = false;
 		SearchState s = state[0];
 		s.update();
-		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5 && !eubos.generate_training_data;
+		boolean doAspiratedSearch = !pe.goForMate() && originalSearchDepthRequiredInPly >= 5;
 		boolean doFullWidthSearch = !doAspiratedSearch;
 
 		if (doAspiratedSearch) {
@@ -431,7 +431,7 @@ public class PlySearcher {
 			}
 		}
 		
-		if (!s.inCheck && !pe.goForMate() && !eubos.generate_training_data) {
+		if (!s.inCheck && !pe.goForMate()) {
 			// Reverse futility pruning
 			if (EubosEngineMain.ENABLE_REVERSE_FUTILITY_PRUNING && 
 				depth < 8 &&
@@ -476,7 +476,7 @@ public class PlySearcher {
 		while ((currMove = move_iter.nextInt()) != Move.NULL_MOVE && !isTerminated()) {
 			
 			if (EubosEngineMain.ENABLE_FUTILITY_PRUNING) {
-				if (!eubos.generate_training_data && quietMoveNumber >= 1) {
+				if (quietMoveNumber >= 1) {
 					if (neitherAlphaBetaIsMate() && !pe.goForMate() && depth <= 2) {
 						if (!s.isStaticValid) {
 							setStaticEvaluation(trans);
