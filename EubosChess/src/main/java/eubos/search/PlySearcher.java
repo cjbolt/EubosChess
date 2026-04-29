@@ -644,7 +644,7 @@ public class PlySearcher {
 				continue;
 			}			
 			s.moveNumber += 1;
-			ml.legalMoveSearchedAtPly(currPly);
+			ml.legalMoveSearchedAtPly(currPly); /* Allows termination after all tactical moves are searched. */
 
 			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
 			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
@@ -676,9 +676,8 @@ public class PlySearcher {
 				pc.update(currPly, bestMove);
 			}
 			
-			if (Move.isRegular(currMove) && s.moveNumber == 1) {
-				/* Search only a few check evasion quiet moves in extended search. */
-				break;
+			if (Move.isRegular(currMove)) {
+				break; /* Search a single legal check evasion in extended search */
 			}
 		}
 
@@ -732,27 +731,31 @@ public class PlySearcher {
 			}
 			
 			if (check_for_refutation) {
-				// Is the hash move a move that leads to draw by repetition?
-				s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-				pm.performMove(s.prevBestMove); // If it is, can't cause a cut-off based on hash score.
-				boolean draws = pos.isThreefoldRepetitionPossible();
-				pm.unperformMove();
 				// Determine if good enough for a refutation...
-				if (s.alpha >= s.beta && !draws) {
-		        	if (EubosEngineMain.ENABLE_LOGGING) {
-		        		if (currPly == 0)
-		        			log(String.format("Trans cut-off as alpha=%d >= beta=%d",
-									s.alpha, s.beta));
+				if (s.alpha >= s.beta) {
+					// But check if the hash move is a move that leads to draw by repetition?
+					s.prevBestMove = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+					pm.performMove(s.prevBestMove); // If it is, can't cause a cut-off based on hash score.
+					boolean draws = pos.isThreefoldRepetitionPossible();
+					pm.unperformMove();
+					if (!draws) {
+			        	if (EubosEngineMain.ENABLE_LOGGING) {
+			        		if (currPly == 0)
+			        			log(String.format("Trans cut-off as alpha=%d >= beta=%d",
+										s.alpha, s.beta));
+						}
+						if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
+						int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
+						// Refutation at required search depth, cut off the Search
+						killers.addMove(currPly, trans_move);
+						ml.history.updateMove(depth, trans_move);
+						s.isCutOff = true;
+						pc.set(currPly, trans_move);
+					    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+					    if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashCutOffWithScore(s.hashScore);
+					} else {
+						s.isHashScoreValid = true;
 					}
-					if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashIsRefutation(pos.getHash(), trans);
-					int trans_move = Move.valueOfFromTransposition(trans, pos.getTheBoard());
-					// Refutation at required search depth, cut off the Search
-					killers.addMove(currPly, trans_move);
-					ml.history.updateMove(depth, trans_move);
-					s.isCutOff = true;
-					pc.set(currPly, trans_move);
-				    if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-				    if (SearchDebugAgent.DEBUG_ENABLED) sda.printHashCutOffWithScore(s.hashScore);
 				} else {
 					s.isHashScoreValid = true;
 				}
