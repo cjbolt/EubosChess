@@ -644,24 +644,28 @@ public class PlySearcher {
 				continue;
 			}			
 			s.moveNumber += 1;
-			ml.legalMoveSearchedAtPly(currPly); /* Allows termination after all tactical moves are searched. */
-
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+			ml.legalMoveSearchedAtPly(currPly); /* Allows termination once all tactical moves are searched. */
 			
-			currPly++;
-			
-			state[currPly].update();
-			positionScore = (short) -extendedSearch(-beta, -alpha, depth-1);
-			
-			pm.unperformMove();
-			currPly--;
-			
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
-			if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
-			if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
-			
+			if (Move.isRegular(currMove)) {
+				positionScore = (short) -pe.getStaticEvaluation();
+				pm.unperformMove();
+			} else {
+				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) pc.clearContinuationBeyondPly(currPly);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printPerformMove(currMove);
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.nextPly();
+				
+				currPly++;
+				
+				state[currPly].update();
+				positionScore = (short) -extendedSearch(-beta, -alpha, depth-1);
+				
+				pm.unperformMove();
+				currPly--;
+				
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.prevPly();
+				if (SearchDebugAgent.DEBUG_ENABLED) sda.printUndoMove(currMove, positionScore);
+				if (EubosEngineMain.ENABLE_UCI_INFO_SENDING) sm.incrementNodesSearched();
+			}
 			if (isTerminated()) { return 0;	} // don't update PV if out of time for search, instead return last fully searched PV.
 			
 			// Handle score backed up to this node
@@ -676,9 +680,7 @@ public class PlySearcher {
 				pc.update(currPly, bestMove);
 			}
 			
-			if (Move.isRegular(currMove)) {
-				break; /* Search a single legal check evasion in extended search */
-			}
+			if (Move.isRegular(currMove)) break;
 		}
 
 		if (!isTerminated()) {
