@@ -207,7 +207,7 @@ public class MiniMaxMoveGeneratorTest {
 		//   abcdefgh
 		setupPosition( "K6k/4P3/3p4/8/8/8/8/8 w - - - 1" );
 		expectedMove = new GenericMove("e7e8Q");
-		doFindMoveTest((byte)2, true);
+		doFindMoveTest((byte)3, true);
 	}
 	
 	@Test
