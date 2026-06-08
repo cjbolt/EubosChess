@@ -197,7 +197,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_KQk_mated_in_6_NEW() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6K1/8/3k4/1Q6/8/8/8 b - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"10"+CMD_TERMINATOR, BEST_PREFIX+"d5e5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"12"+CMD_TERMINATOR, BEST_PREFIX+"d5c6"+CMD_TERMINATOR));
 		assertTrue(performTestExpectMate(10000, -6));
 	} 
 	
@@ -238,7 +238,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 	public void test_mate_in_3_guardian3713() throws InterruptedException, IOException {
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/2p5/P4p2/Q1N2k1P/2P2P2/3PK2P/5R2/2B2R2 w - - 1 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"5"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"6"+CMD_TERMINATOR, BEST_PREFIX+"f2d2"+CMD_TERMINATOR));
 		assertTrue(performTestExpectMate(4000, 3));
 	}
 	
@@ -538,7 +538,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 29
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"4k3/4Pp2/5P2/4K3/8/8/8/8 w - - 0 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5f5"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"18"+CMD_TERMINATOR, BEST_PREFIX+"e5f4"+CMD_TERMINATOR));
 		assertTrue(performTest(1000));
 	}
 	
@@ -640,7 +640,7 @@ public class EubosEngineMainTest extends AbstractEubosIntegration {
 		// Fine: problem 100A
 		setupEngine();
 		commands.add(new CommandPair(POS_FEN_PREFIX+"8/6p1/3k1p2/2p2Pp1/2P1p1P1/1P4P1/4K3/8 w - - 2 1"+CMD_TERMINATOR, null));
-		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"e2d2"+CMD_TERMINATOR));
+		commands.add(new CommandPair(GO_DEPTH_PREFIX+"7"+CMD_TERMINATOR, BEST_PREFIX+"e2f2"+CMD_TERMINATOR));
 		assertTrue(performTest(1000));		
 	}
 	

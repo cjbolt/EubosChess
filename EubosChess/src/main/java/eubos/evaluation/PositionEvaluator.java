@@ -102,7 +102,7 @@ public class PositionEvaluator implements IEvaluate {
 		// If either side can't win (e.g. bare King) then do a mate search.
 		goForMate = ((Long.bitCount(bd.getBlackPieces()) == 1) || 
 				     (Long.bitCount(bd.getWhitePieces()) == 1)) ||
-				Math.abs(getStaticEvaluation()) > 2500;
+				Math.abs(getStaticEvaluation()) > 1000;
 		initialise();
 	}
 }
